@@ -384,6 +384,30 @@ PrivHound/
 └── README.md
 ```
 
+## BOF Iteration 1
+
+The first native BOF vertical slice is under `bof/`. It is read-only and currently covers host/current-user nodes, dangerous token privileges, and service candidates. The same C collection core can be built as a standalone Windows harness for testing without Cobalt Strike.
+
+See [`bof/TESTING.md`](bof/TESTING.md) for the VM, harness, reference-collector, comparison, and authorized Beacon acceptance-test procedure.
+
+From an x64 Native Tools Command Prompt for Visual Studio:
+
+```bat
+bof\build-msvc.bat
+```
+
+Then run the standalone harness from PowerShell:
+
+```powershell
+.\bof\build\privhound_harness.exe -o C:\PrivHoundTest\bof.ndjson
+.\scripts\Convert-PrivHoundNdjson.ps1 `
+    -InputPath C:\PrivHoundTest\bof.ndjson `
+    -OutputPath C:\PrivHoundTest\bof.json `
+    -FindingsPath C:\PrivHoundTest\bof_findings.json
+```
+
+Use `tests\compare\Compare-PrivHoundGraphs.ps1` to compare the BOF output with a PowerShell reference graph after running both collectors in the same lab VM. Build artifacts and local output are ignored by Git.
+
 ---
 
 ## Extending PrivHound

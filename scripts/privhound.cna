@@ -1,0 +1,45 @@
+/*
+ * PrivHound Iteration 1 Aggressor Script integration.
+ *
+ * Build the x64 BOF artifact and load this script from the repository,
+ * load this file in an authorized Cobalt Strike lab, then run `privhound`.
+ */
+
+sub privhound_callback {
+    # $1 = beacon id, $2 = BOF result, $3 = callback metadata
+    local('$bid $result $meta $path $handle');
+    $bid = $1;
+    $result = $2;
+    $meta = $3;
+    $path = "privhound_$+ $bid $+ .ndjson";
+    # A BOF callback may be invoked once per output chunk. Append each chunk;
+    # the alias truncates the destination immediately before tasking Beacon.
+    $handle = openf(">>" . $path);
+    writeb($handle, $result);
+    closef($handle);
+    if ($meta["is_final"]) {
+        blog($bid, "PrivHound records saved to $path");
+        blog($bid, "Convert with scripts\\Convert-PrivHoundNdjson.ps1");
+    }
+}
+
+alias privhound {
+    local('$bid $handle $data $args $arch $bof_path $output_path');
+    $bid = $1;
+    $arch = barch($bid);
+    if ($arch ne "x64") {
+        berror($bid, "PrivHound Iteration 1 supports x64 Beacon sessions only");
+        return;
+    }
+    $bof_path = script_resource("../bof/build/privhound. $+ $arch $+ .bof.o");
+    $handle = openf($bof_path);
+    $data = readb($handle, -1);
+    closef($handle);
+    $args = "";
+    $output_path = "privhound_$+ $bid $+ .ndjson";
+    $handle = openf(">" . $output_path);
+    closef($handle);
+    btask($bid, "Running PrivHound Iteration 1 BOF");
+    beacon_inline_execute($bid, $data, "go", $args, &privhound_callback);
+}
+

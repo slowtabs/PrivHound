@@ -16,3 +16,10 @@ Desktop.ini
 .venv/
 .env
 __pycache__/
+
+# Native BOF build outputs
+bof/build/
+
+# Local test output
+tests/output/
+*.ndjson
