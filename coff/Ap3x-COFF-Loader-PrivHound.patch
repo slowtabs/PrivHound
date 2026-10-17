@@ -1,0 +1,45 @@
+diff --git a/Src/coff_loader.cpp b/Src/coff_loader.cpp
+index 838fb9c..63162d5 100644
+--- a/Src/coff_loader.cpp
++++ b/Src/coff_loader.cpp
+@@ -53,7 +53,7 @@ void* ProcessBeaconSymbols(char* SymbolName, bool InternalFunction) {
+     }
+ }
+ 
+-BOOL ExecuteEntry(COFF_t* COFF, char* func, char* args, unsigned long argSize) {
++BOOL ExecuteEntry(COFF_t* COFF, void** SectionMapped, char* func, char* args, unsigned long argSize) {
+     VOID(*foo)(char* in, uint32_t datalen) = NULL;
+ 
+     if (!func || !COFF->FileBase)
+@@ -62,7 +62,12 @@ BOOL ExecuteEntry(COFF_t* COFF, char* func, char* args, unsigned long argSize) {
+     for (UINT32 counter = 0; counter < COFF->FileHeader->NumberOfSymbols; counter++)
+     {
+         if (strcmp(COFF->SymbolTable[counter].first.Name, func) == 0) {
+-            foo = (void(*)(char*, uint32_t))((char*)COFF->RawTextData + COFF->SymbolTable[counter].Value);
++            const uint16_t sectionNumber = COFF->SymbolTable[counter].SectionNumber;
++            if (sectionNumber == 0 || sectionNumber > COFF->FileHeader->NumberOfSections) {
++                return FALSE;
++            }
++            foo = (void(*)(char*, uint32_t))(
++                (char*)SectionMapped[sectionNumber - 1] + COFF->SymbolTable[counter].Value);
+             DEBUG_PRINT("Trying to run: 0x%p\n\n", foo);
+         }
+     }
+@@ -159,7 +164,7 @@ bool RunCOFF(char* FileData, DWORD* DataSize, char* EntryName, char* argumentdata
+     DEBUG_PRINT("\n");
+ #pragma endregion
+ 
+-    for (byte i = 0; i < COFF.FileHeader->NumberOfSections; i++) {
++    for (uint16_t i = 0; i < COFF.FileHeader->NumberOfSections; i++) {
+         Section_t* section = (Section_t*)(COFF.FileBase + sizeof(FileHeader_t) + (i * sizeof(Section_t)));
+         DEBUG_PRINT("********* COFF Section %d: \"%s\" *********\n", i, section->Name);
+ 
+@@ -248,7 +253,7 @@ bool RunCOFF(char* FileData, DWORD* DataSize, char* EntryName, char* argumentdata
+         }
+     }
+ 
+-    ExecuteEntry(&COFF, EntryName, argumentdata, argumentsize);
++    ExecuteEntry(&COFF, sectionMapped, EntryName, argumentdata, argumentsize);
+ 
+     return true;
+ }
