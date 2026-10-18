@@ -2698,7 +2698,7 @@ function Export-FindingsReport([string]$Path) {
 }
 
 function Export-OpenGraphJson([string]$Path) {
-    $payload = @{ metadata=@{source_kind=""}; graph=@{nodes=$Script:Nodes;edges=$Script:Edges} }
+    $payload = @{ metadata=@{source_kind="PrivHound"}; graph=@{nodes=$Script:Nodes;edges=$Script:Edges} }
     $json = $payload | ConvertTo-Json -Depth 10
     # Write UTF-8 without BOM — BOM breaks BloodHound's JSON parser
     $resolvedPath = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path (Get-Location) $Path }

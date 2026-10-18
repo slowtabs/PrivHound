@@ -1,7 +1,7 @@
 #pragma once
 
 /*
- * Minimal Beacon API surface used by the Iteration 1 BOF.
+ * Minimal Beacon API surface used by the PrivHound BOF.
  * Keep this file compatible with the official Cobalt Strike BOF template.
  */
 #include <windows.h>

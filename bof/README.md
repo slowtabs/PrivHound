@@ -1,11 +1,15 @@
-# PrivHound BOF — Iteration 1
+# PrivHound BOF — Iteration 2
 
-This directory contains the first native vertical slice of PrivHound:
+This directory contains the second native vertical slice of PrivHound:
 
 - host and current-user graph nodes;
 - dangerous token-privilege collection;
 - Windows service enumeration;
 - service configuration and service-binary candidates;
+- exploitable unquoted service paths;
+- writable process `PATH` directories with machine/user scope;
+- AlwaysInstallElevated policy detection;
+- UAC policy and filtered-token observations;
 - a standalone Windows harness;
 - a Cobalt Strike BOF entry point named `go`.
 
@@ -53,5 +57,9 @@ The output is newline-delimited JSON records. It is intentionally an intermediat
 
 Build the artifact at `bof\build\privhound.x64.bof.o`, load `scripts\privhound.cna` in an authorized Cobalt Strike lab, and run the registered `privhound` command from a Beacon console.
 
-Iteration 1 supports x64 Beacon sessions. The Aggressor wrapper refuses x86 sessions. Test in a disposable VM because a BOF executes inside Beacon and a native crash can affect that session.
+Iteration 2 supports x64 Beacon sessions. The Aggressor wrapper refuses x86 sessions. Test in a disposable VM because a BOF executes inside Beacon and a native crash can affect that session.
+
+This is not full `PrivHound.ps1` parity yet. This iteration groups checks that reuse service, registry, environment, and filesystem ACL primitives. Later iterations will add tasks, autoruns, credential artifacts, user/profile relationships, and the remaining host-policy checks.
+
+See [`PARITY.md`](PARITY.md) for the per-check implementation status and iteration plan.
 

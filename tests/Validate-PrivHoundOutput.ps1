@@ -49,6 +49,13 @@ foreach ($node in $nodes.Values) {
     elseif ($node.kinds -contains 'PHEndpoint') { $idType = 'computer'; $idName = [string]$node.properties.hostname }
     elseif ($node.kinds -contains 'PHTokenPrivilege') { $idType = 'priv'; $idName = [string]$node.properties.privilege }
     elseif ($node.kinds -contains 'PHService') { $idType = 'service'; $idName = [string]$node.properties.service_name }
+    elseif ($node.kinds -contains 'PHUnquotedPath') { $idType = 'unquoted'; $idName = [string]$node.properties.service_name }
+    elseif ($node.kinds -contains 'PHWritablePath') { $idType = 'pathdir'; $idName = [string]$node.properties.directory }
+    elseif ($node.kinds -contains 'PHRegistryMisconfig') { $idType = 'regkey'; $idName = 'AIE' }
+    elseif ($node.kinds -contains 'PHUACBypass') {
+        $idType = 'uac'
+        $idName = if ([string]$node.properties.name -match '^UAC:DISABLED@') { 'LUA_disabled' } else { 'NoPrompt' }
+    }
     if ($idType -and $node.properties.hostname -and $idName) {
         $expectedId = Get-PHExpectedId ([string]$node.properties.hostname) $idType $idName
         if ([string]$node.id -cne $expectedId) { throw "Node ID parity failure for $idType '$idName': expected $expectedId, got $($node.id)" }

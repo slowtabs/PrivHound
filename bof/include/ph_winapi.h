@@ -7,9 +7,14 @@
  */
 #ifdef BOF
 #define CloseHandle                 KERNEL32$CloseHandle
+#define CreateFileA                 KERNEL32$CreateFileA
 #define GetComputerNameA            KERNEL32$GetComputerNameA
 #define GetCurrentProcess           KERNEL32$GetCurrentProcess
+#define GetEnvironmentVariableA     KERNEL32$GetEnvironmentVariableA
+#define GetFileAttributesA          KERNEL32$GetFileAttributesA
 #define GetProcessHeap              KERNEL32$GetProcessHeap
+#define GetWindowsDirectoryA        KERNEL32$GetWindowsDirectoryA
+#define ExpandEnvironmentStringsA   KERNEL32$ExpandEnvironmentStringsA
 #define HeapAlloc                   KERNEL32$HeapAlloc
 #define HeapFree                    KERNEL32$HeapFree
 #define LocalFree                   KERNEL32$LocalFree
@@ -29,6 +34,11 @@
 #define OpenServiceA                ADVAPI32$OpenServiceA
 #define QueryServiceConfigA         ADVAPI32$QueryServiceConfigA
 #define QueryServiceObjectSecurity  ADVAPI32$QueryServiceObjectSecurity
+#define QueryServiceStatusEx        ADVAPI32$QueryServiceStatusEx
+#define RegCloseKey                 ADVAPI32$RegCloseKey
+#define RegEnumKeyExA               ADVAPI32$RegEnumKeyExA
+#define RegOpenKeyExA               ADVAPI32$RegOpenKeyExA
+#define RegQueryValueExA            ADVAPI32$RegQueryValueExA
 
 #define RtlGetVersion               NTDLL$RtlGetVersion
 #endif

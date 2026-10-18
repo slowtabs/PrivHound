@@ -1,4 +1,4 @@
-# Iteration 1 testing
+# Iteration 2 testing
 
 Run the lab only in a disposable Windows VM. Take a clean snapshot before running the lab setup script. Do not run the vulnerable lab on a production or daily-use machine.
 
@@ -20,7 +20,7 @@ gcc -dumpmachine
 .\tests\Inspect-PrivHoundBof.ps1 -BofPath .\bof\build\privhound.x64.bof.o -Architecture x64
 ```
 
-If the compiler reports `mingw32`, use it only for compiler/harness experiments. Its x86 object is not an Iteration 1 release artifact:
+If the compiler reports `mingw32`, use it only for compiler/harness experiments. Its x86 object is not an Iteration 2 release artifact:
 
 ```powershell
 .\bof\build.ps1 -Arch x86
@@ -67,15 +67,17 @@ Compare the supported graph contract:
 .\tests\compare\Compare-PrivHoundGraphs.ps1 `
     -ReferencePath C:\PrivHoundTest\powershell.json `
     -CandidatePath C:\PrivHoundTest\bof.json
-.\tests\Assert-Iteration1Lab.ps1 `
+.\tests\Assert-Iteration2Lab.ps1 `
     -GraphPath C:\PrivHoundTest\bof.json
 ```
+
+Iteration 2 acceptance expects `PHLabUnquotedSvc`, `C:\PrivHoundLab\FakePath`, both AlwaysInstallElevated policy values, and the no-prompt UAC policy created by the lab setup. Run the harness or BOF as the non-elevated `PHLabUser`; an elevated token intentionally suppresses writable-ACL escalation candidates.
 
 ## Cobalt Strike acceptance test
 
 Only in an authorized Cobalt Strike lab:
 
-1. Build `bof\build\privhound.x64.bof.o` (Iteration 1 requires an x64 Beacon).
+1. Build `bof\build\privhound.x64.bof.o` (Iteration 2 requires an x64 Beacon).
 2. Load `scripts\privhound.cna`.
 3. Run `privhound` from a Beacon console with a matching built artifact.
 4. Confirm the callback saves an `.ndjson` file.

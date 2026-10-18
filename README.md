@@ -384,11 +384,11 @@ PrivHound/
 └── README.md
 ```
 
-## BOF Iteration 1
+## BOF Iteration 2
 
-The first native BOF vertical slice is under `bof/`. It is read-only and currently covers host/current-user nodes, dangerous token privileges, and service candidates. The same C collection core can be built as a standalone Windows harness for testing without Cobalt Strike.
+The native BOF is under `bof/`. It is read-only and currently covers host/current-user nodes, dangerous token privileges, weak service candidates, exploitable unquoted service paths, writable `PATH` directories, AlwaysInstallElevated, and UAC policy observations. The same C collection core can be built as a standalone Windows harness for testing without Cobalt Strike.
 
-See [`bof/TESTING.md`](bof/TESTING.md) for the VM, harness, reference-collector, comparison, and authorized Beacon acceptance-test procedure.
+See [`bof/TESTING.md`](bof/TESTING.md) for the VM, harness, reference-collector, comparison, and authorized Beacon acceptance-test procedure. [`bof/PARITY.md`](bof/PARITY.md) tracks all 29 PowerShell checks and the remaining iterations.
 
 From an x64 Native Tools Command Prompt for Visual Studio:
 

@@ -1,5 +1,5 @@
 /*
- * PrivHound Iteration 1 Aggressor Script integration.
+ * PrivHound Iteration 2 Aggressor Script integration.
  *
  * Build the x64 BOF artifact and load this script from the repository,
  * load this file in an authorized Cobalt Strike lab, then run `privhound`.
@@ -28,7 +28,7 @@ alias privhound {
     $bid = $1;
     $arch = barch($bid);
     if ($arch ne "x64") {
-        berror($bid, "PrivHound Iteration 1 supports x64 Beacon sessions only");
+        berror($bid, "PrivHound Iteration 2 supports x64 Beacon sessions only");
         return;
     }
     $bof_path = script_resource("../bof/build/privhound. $+ $arch $+ .bof.o");
@@ -39,7 +39,7 @@ alias privhound {
     $output_path = "privhound_$+ $bid $+ .ndjson";
     $handle = openf(">" . $output_path);
     closef($handle);
-    btask($bid, "Running PrivHound Iteration 1 BOF");
+    btask($bid, "Running PrivHound Iteration 2 BOF");
     beacon_inline_execute($bid, $data, "go", $args, &privhound_callback);
 }
 

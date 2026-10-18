@@ -45,7 +45,7 @@ foreach ($line in [IO.File]::ReadLines((Resolve-Path -LiteralPath $InputPath))) 
 }
 
 $payload = [ordered]@{
-    metadata = [ordered]@{ source_kind = '' }
+    metadata = [ordered]@{ source_kind = 'PrivHound' }
     graph = [ordered]@{
         nodes = @($nodes.Values)
         edges = @($edges.Values)

@@ -2,8 +2,15 @@
 param(
     [Parameter(Mandatory)] [string]$ReferencePath,
     [Parameter(Mandatory)] [string]$CandidatePath,
-    [string[]]$NodeKinds = @('PHUser','PHPrivTarget','PHEndpoint','PHTokenPrivilege','PHService'),
-    [string[]]$EdgeKinds = @('PHHosts','PHHasSessionOn','PHHasPrivilege','PHCanEscalateTo','PHRunsAs','PHCanModifyService','PHCanWriteBinary')
+    [string[]]$NodeKinds = @(
+        'PHUser','PHPrivTarget','PHEndpoint','PHTokenPrivilege','PHService',
+        'PHUnquotedPath','PHWritablePath','PHRegistryMisconfig','PHUACBypass'
+    ),
+    [string[]]$EdgeKinds = @(
+        'PHHosts','PHHasSessionOn','PHHasPrivilege','PHCanEscalateTo','PHRunsAs',
+        'PHCanModifyService','PHCanWriteBinary','PHCanHijackPath','PHCanWriteTo',
+        'PHCanExploit','PHEscalatesTo','PHCanBypassUAC'
+    )
 )
 
 $ErrorActionPreference = 'Stop'

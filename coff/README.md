@@ -15,7 +15,7 @@ cd C:\PrivHound\coff
 .\COFFLoader.exe go .\privhound.x64.bof.o
 ```
 
-PrivHound's Iteration 1 BOF takes no arguments. The loader and BOF are x64.
+PrivHound's Iteration 2 BOF takes no arguments. The loader and BOF are x64.
 The loader is statically linked and depends only on standard Windows system
 DLLs, so a separate Visual C++ Redistributable installation is not required.
 It also includes the two compatibility fixes recorded in
