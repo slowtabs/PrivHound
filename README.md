@@ -26,6 +26,15 @@ PrivHound models local privilege escalation as a graph. Built on BloodHound's Op
 
 The result: multi-hop escalation chains become **visible**, **queryable with Cypher**, and **overlayable on top of existing Active Directory attack paths**.
 
+PrivHound currently has two collectors:
+
+| Collector | Status | Coverage |
+|---|---|---|
+| `PrivHound.ps1` | Full collector | All 29 checks / 30 techniques listed below |
+| Native x64 BOF v2.1 | Iterations 1–2 accepted | Token privileges, service permissions, unquoted service paths, writable `PATH` directories, AlwaysInstallElevated, and UAC policy observations |
+
+The BOF is a read-only native collector intended for authorized Windows assessment labs. It emits NDJSON records that are converted into the same BloodHound OpenGraph model used by the PowerShell collector. See [Native BOF](#native-bof-v21--iterations-12-accepted) for build, test, and conversion instructions.
+
 > **Example:** Your current user can read the profile of another user on the machine. That profile contains cleartext credentials stored on their desktop for a third user. That third user has write permission to a service binary running as Administrator. No existing tool connects these dots. PrivHound does automatically.
 
 ```
@@ -187,6 +196,8 @@ python .\bh\bh_upload.py --ingest .\bh\seed_data.json
 Alternatively, navigate to **Administration → File Ingest**, drag and drop the JSON file, and wait for ingest to complete.
 The archive uploader skips non-OpenGraph JSON such as `privhound_customnodes.json`; register icons separately with `--register-node`.
 The seed graph creates a `PRIVHOUND_SEED_IGNOREME` node; remove it after the collected data has registered the edge kinds.
+
+Current exports set `metadata.source_kind` to `PrivHound`, so BloodHound displays labels such as `PrivHound | PHService`. Graphs imported from an older build may still appear with the `OpenGraph` source label until that older data is removed and re-ingested.
 
 ### 4. Query in BloodHound
 
@@ -365,6 +376,8 @@ This reveals scenarios like: *"The intern's AD account has a session on SERVER01
 - **BloodHound:** CE v8.0.0+ with PostgreSQL backend, or BloodHound Enterprise
 - **Python uploader:** Python 3.10+; uses only the standard library.
 - **Optional seeding:** `bh\seed_data.json` adds a disposable seed node to pre-register edge kinds.
+- **BOF build:** Visual Studio C++ Build Tools with an x64 Native Tools prompt (recommended), or an x64 MinGW-w64 toolchain.
+- **BOF execution:** The standalone harness, or an authorized x64 BOF loader/Beacon session in a disposable Windows VM.
 
 ---
 
@@ -373,20 +386,41 @@ This reveals scenarios like: *"The intern's AD account has a session on SERVER01
 ```
 PrivHound/
 ├── PrivHound.ps1                     # Main collector script
+├── bof/
+│   ├── src/                           # Native BOF and shared collector source
+│   ├── README.md                      # BOF build and integration overview
+│   ├── TESTING.md                     # Disposable-VM acceptance procedure
+│   └── PARITY.md                      # Per-check feature-parity roadmap
 ├── bh/
 │   ├── bh_upload.py                  # Ingest data, register icons, import saved queries
 │   ├── Upload-CustomNodes.ps1        # PowerShell custom-node icon uploader
 │   ├── privhound_queries.cypher      # 79 prebuilt Cypher queries
 │   └── seed_data.json                # Optional edge-kind seed graph
+├── scripts/
+│   ├── Convert-PrivHoundNdjson.ps1    # Convert BOF NDJSON to OpenGraph JSON
+│   └── privhound.cna                  # Cobalt Strike command wrapper
+├── tests/                             # BOF inspection, validation, and parity tests
 ├── lab/
 │   ├── Setup-VulnLab.ps1             # Create vulnerable lab environment
 │   └── Teardown-VulnLab.ps1          # Clean up lab artifacts
 └── README.md
 ```
 
-## BOF Iteration 2
+## Native BOF v2.1 — Iterations 1–2 accepted
 
-The native BOF is under `bof/`. It is read-only and currently covers host/current-user nodes, dangerous token privileges, weak service candidates, exploitable unquoted service paths, writable `PATH` directories, AlwaysInstallElevated, and UAC policy observations. The same C collection core can be built as a standalone Windows harness for testing without Cobalt Strike.
+The native BOF is under `bof/`. It is read-only: it enumerates configuration and access conditions but does not exploit findings, modify services, validate credentials, or establish persistence. The same C collection core builds both the BOF object and a standalone Windows harness, making it possible to test the collector without Cobalt Strike.
+
+Current BOF coverage:
+
+- Host, current-user, endpoint, and privilege-target graph nodes
+- Dangerous token privileges
+- Weak Windows service permissions and writable service binaries
+- Exploitable unquoted service paths
+- Writable process `PATH` directories, with machine/user scope
+- AlwaysInstallElevated policy
+- UAC policy and filtered-token observations
+
+The accepted Iteration 2 VM fixture produced **14 nodes, 22 edges, 13 findings, and 0 collector errors**. `WeakServicePermissions`, `UnquotedServicePaths`, `DLLHijacking`, `AlwaysInstallElevated`, and `UACBypass` passed their positive VM fixtures; `TokenPrivileges` is implemented and structurally validated. This is not yet full parity with the PowerShell collector.
 
 See [`bof/TESTING.md`](bof/TESTING.md) for the VM, harness, reference-collector, comparison, and authorized Beacon acceptance-test procedure. [`bof/PARITY.md`](bof/PARITY.md) tracks all 29 PowerShell checks and the remaining iterations.
 
@@ -399,14 +433,38 @@ bof\build-msvc.bat
 Then run the standalone harness from PowerShell:
 
 ```powershell
+New-Item -ItemType Directory -Path C:\PrivHoundTest -Force | Out-Null
 .\bof\build\privhound_harness.exe -o C:\PrivHoundTest\bof.ndjson
 .\scripts\Convert-PrivHoundNdjson.ps1 `
     -InputPath C:\PrivHoundTest\bof.ndjson `
     -OutputPath C:\PrivHoundTest\bof.json `
     -FindingsPath C:\PrivHoundTest\bof_findings.json
+.\tests\Validate-PrivHoundOutput.ps1 `
+    -NdjsonPath C:\PrivHoundTest\bof.ndjson `
+    -OpenGraphPath C:\PrivHoundTest\bof.json
 ```
 
-Use `tests\compare\Compare-PrivHoundGraphs.ps1` to compare the BOF output with a PowerShell reference graph after running both collectors in the same lab VM. Build artifacts and local output are ignored by Git.
+The converted `bof.json` is the file to upload through BloodHound's **Administration → File Ingest** page or `bh_upload.py`.
+
+To test the built object directly with the Ap3x COFF Loader in an authorized disposable VM, place `COFFLoader.exe` and `privhound.x64.bof.o` in the same directory and run:
+
+```powershell
+$records = & .\COFFLoader.exe go .\privhound.x64.bof.o 2>&1 |
+    ForEach-Object { "$_" } |
+    Where-Object { $_ -match '^\{"type":' }
+[IO.File]::WriteAllLines(
+    (Join-Path $PWD 'bof.ndjson'),
+    [string[]]$records,
+    [Text.UTF8Encoding]::new($false)
+)
+
+.\scripts\Convert-PrivHoundNdjson.ps1 `
+    -InputPath .\bof.ndjson `
+    -OutputPath .\privhound_opengraph.json `
+    -FindingsPath .\privhound_findings.json
+```
+
+If the converter remains in the repository while the loader files are elsewhere, invoke it by its absolute path. Use `tests\compare\Compare-PrivHoundGraphs.ps1` to compare BOF output with a PowerShell reference graph after running both collectors as the same non-elevated user in the same lab VM. Build artifacts and local output are ignored by Git.
 
 ---
 
